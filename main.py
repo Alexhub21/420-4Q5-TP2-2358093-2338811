@@ -4,7 +4,7 @@ from question1 import Fichier, Dossier
 if __name__ == "__main__":
     # Création d'un fichier et d'un dossier existants
     try:
-        fichier = Fichier("question1.py", ".", datetime.now(), "py")
+        fichier = Fichier("question1.txt", ".", datetime.now(), "py")
         print("Fichier créé avec succès.")
         fichier.ouvrir()  # Ouvre le fichier avec l'éditeur par défaut
         
