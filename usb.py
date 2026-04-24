@@ -5,18 +5,19 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import psutil
+
 CACHE_DIR = "cache_usb"
 LOG_FILE = "log.txt"
-
 def detecter_unites_usb():
     lecteurs = []
 
     for lettre in "DEFGHIJKLMNOPQRSTUVWXYZ":
-        chemin = lettre + ":\\"
-        if os.path.exists(chemin):
-            lecteurs.append(chemin)
+        chemin = Path(lettre + ":\\")
+        if chemin.exists():
+            lecteurs.append(str(chemin))
 
     return lecteurs
+
 
 def ecrire_log(message):
     date = datetime.now()
@@ -29,66 +30,50 @@ def ecrire_log(message):
     except:
         print("Erreur d'ecriture du fichier de log")
 
+
+
 def copier_contenu(source, destination):
-    # Dossiers système à ignorer
-    dossiers_ignores = {"$Recycle.Bin", "System Volume Information", "pagefile.sys", "hiberfil.sys", "$RECYCLE.BIN"}
-    
     try:
-        if not os.path.exists(destination):
-            os.makedirs(destination)
+        source_path = Path(source)
+        dest_path = Path(destination)
 
-        for element in os.listdir(source):
-            # Ignorer les dossiers système
-            if element in dossiers_ignores:
-                ecrire_log(f"Dossier système ignoré : {element}")
-                continue
-            
-            chemin_source = os.path.join(source, element)
-            chemin_destination = os.path.join(destination, element)
+        if not dest_path.exists():
+            dest_path.mkdir(parents=True)
 
+        for element in source_path.iterdir():
             try:
-                if os.path.isfile(chemin_source):
-                    shutil.copy2(chemin_source, chemin_destination)
-                    print(f"Fichier copié : {element}")
-                elif os.path.isdir(chemin_source):
-                    shutil.copytree(chemin_source, chemin_destination)
-                    print(f"Dossier copié : {element}")
-            except PermissionError:
-                ecrire_log(f"Accès refusé : {element}")
-                continue
-            except Exception as e:
-                ecrire_log(f"Erreur pour {element} : {str(e)}")
+                if element.is_file():
+                    shutil.copy2(element, dest_path / element.name)
+
+                elif element.is_dir():
+                    shutil.copytree(element, dest_path / element.name)
+
+            except Exception:
                 continue
 
     except Exception as e:
-        ecrire_log("Erreur lors de la copie du contenu : " + str(e))
+        ecrire_log("Erreur lors de la copie : " + str(e))
+
 
 def nettoyer_lecteur(lecteur):
-    # Dossiers système à ignorer
-    dossiers_ignores = {"$Recycle.Bin", "System Volume Information", "pagefile.sys", "hiberfil.sys", "$RECYCLE.BIN"}
-    
     try:
-        for element in os.listdir(lecteur):
-            # Ignorer les dossiers système
-            if element in dossiers_ignores:
-                continue
-                
-            chemin_element = os.path.join(lecteur, element)
+        lecteur_path = Path(lecteur)
+
+        for element in lecteur_path.iterdir():
             try:
-                if os.path.isfile(chemin_element):
-                    os.remove(chemin_element)
-                    print(f"Fichier supprimé : {chemin_element}")
-                elif os.path.isdir(chemin_element):
-                    shutil.rmtree(chemin_element)
-                    print(f"Dossier supprimé : {chemin_element}")
-            except PermissionError:
-                ecrire_log(f"Accès refusé lors du nettoyage : {element}")
+                if element.is_file():
+                    element.unlink()
+
+                elif element.is_dir():
+                    shutil.rmtree(element)
+
+            except Exception:
                 continue
-            except Exception as e:
-                ecrire_log(f"Erreur lors du nettoyage de {element} : {str(e)}")
-                continue
+
     except Exception as e:
         ecrire_log("Erreur lors du nettoyage du lecteur : " + str(e))
+
+
 def initialiser_source(lecteur):
     try:
         ecrire_log("Clé source détectée : " + lecteur)
@@ -100,8 +85,8 @@ def initialiser_source(lecteur):
         ecrire_log("Copie du contenu de la clé source terminée")
     except Exception as e:
         ecrire_log("Erreur lors de l'initialisation de la source : " + str(e))
-# fonction dupliquer le contenu de la cache vers la clé source utilser
-# la fonction taille_dossier(...),espace_libre(..)
+
+
 def taille_dossier(chemin):
     total = 0
     for racine, dossiers, fichiers in os.walk(chemin):
@@ -114,7 +99,7 @@ def espace_libre(lecteur):
     total, utilise, libre = shutil.disk_usage(lecteur)
     return libre
 
-# fonction dupliquer
+
 def dupliquer_vers_cible(lecteur ,effacer):
     try:
 
@@ -128,13 +113,16 @@ def dupliquer_vers_cible(lecteur ,effacer):
             ecrire_log("Nettoyage de la clé cible avant la duplication.")
             nettoyer_lecteur(lecteur)
        copier_contenu(CACHE_DIR, lecteur)
-       ecrire_log("Duplication vers la clé cible terminée : " + lecteur)
+       #ecrire_log("Duplication vers la clé cible terminée : " + lecteur)
+       taille_mo = round(taille_cache / (1024 * 1024), 2)
+       ecrire_log("Copie de " + str(taille_mo) + " Mo terminée avec succès.")
 
     except Exception as e:
         ecrire_log("Erreur lors de la duplication vers la clé cible : " + str(e))
     
-    #verifier la talle
-    # test a faire
+
+# Fonction principale
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--effacer", action="store_true")
@@ -144,34 +132,45 @@ def main():
     source_usb = None
     anciennes_cles = []
 
+    message_attente_source = False
+    message_attente_cible = False
+
     ecrire_log("Démarrage du programme...")
 
     while True:
         cles = detecter_unites_usb()
 
-        # CAS 1 : aucune clé source encore choisie
+        # CAS 1 : aucune clé source
         if not source_initialisee:
             if len(cles) > 0:
                 source_usb = cles[0]
                 initialiser_source(source_usb)
                 source_initialisee = True
+                message_attente_source = False
             else:
-                print("En attente d'une clé USB source...")
+                if not message_attente_source:
+                    print("En attente d'une clé USB source...")
+                    message_attente_source = True
 
-        # CAS 2 : la source existe déjà, on attend les cibles
+        # CAS 2 : source déjà définie
         else:
-            # détecter les nouvelles clés
+            if not message_attente_cible:
+                print("En attente d'une clé USB cible...")
+                message_attente_cible = True
+
+            # détecter nouvelles clés
             for cle in cles:
                 if cle not in anciennes_cles:
-                    if cle != source_usb:
-                        ecrire_log("Nouvelle clé cible détectée : " + cle)
-                        dupliquer_vers_cible(cle, args.effacer)
+                    ecrire_log("Nouvelle clé cible détectée : " + cle)
+                    dupliquer_vers_cible(cle, args.effacer)
+                    message_attente_cible = False
 
-            # détecter les clés retirées
+            # détecter clés retirées
             for ancienne in anciennes_cles:
                 if ancienne not in cles:
                     if ancienne == source_usb:
                         ecrire_log("Clé source débranchée.")
+                        source_usb = None  
                     else:
                         ecrire_log("Clé cible débranchée.")
 
