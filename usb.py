@@ -140,7 +140,7 @@ def main():
     while True:
         cles = detecter_unites_usb()
 
-        # CAS 1 : aucune clé source
+    
         if not source_initialisee:
             if len(cles) > 0:
                 source_usb = cles[0]
@@ -151,8 +151,7 @@ def main():
                 if not message_attente_source:
                     print("En attente d'une clé USB source...")
                     message_attente_source = True
-
-        # CAS 2 : source déjà définie
+                    
         else:
             if not message_attente_cible:
                 print("En attente d'une clé USB cible...")

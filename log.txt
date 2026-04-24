@@ -172,3 +172,16 @@
 [ 2026-04-23 21:16:41 ] Début de la copie vers la clé cible : D:\
 [ 2026-04-23 21:16:41 ] Copie de 0.01 Mo terminée avec succès.
 [ 2026-04-23 21:16:47 ] Clé cible débranchée.
+[ 2026-04-23 23:00:34 ] Démarrage du programme...
+[ 2026-04-23 23:00:49 ] Clé source détectée : D:\
+[ 2026-04-23 23:00:49 ] Copie du contenu de la clé source commnencée
+[ 2026-04-23 23:00:49 ] Copie du contenu de la clé source terminée
+[ 2026-04-23 23:01:01 ] Clé source débranchée.
+[ 2026-04-23 23:01:07 ] Nouvelle clé cible détectée : D:\
+[ 2026-04-23 23:01:07 ] Début de la copie vers la clé cible : D:\
+[ 2026-04-23 23:01:07 ] Copie de 0.01 Mo terminée avec succès.
+[ 2026-04-23 23:01:55 ] Clé cible débranchée.
+[ 2026-04-23 23:03:14 ] Nouvelle clé cible détectée : D:\
+[ 2026-04-23 23:03:14 ] Début de la copie vers la clé cible : D:\
+[ 2026-04-23 23:03:14 ] Copie de 0.01 Mo terminée avec succès.
+[ 2026-04-23 23:12:38 ] Clé cible débranchée.
